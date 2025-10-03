@@ -1,9 +1,10 @@
 #include "PluginEditor.h"
+#include "DSPOption.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+    : AudioProcessorEditor (&p), patriarchProcessor (p)
 {
-    juce::ignoreUnused (processorRef);
+    juce::ignoreUnused (patriarchProcessor);
 
     addAndMakeVisible (inspectButton);
 
