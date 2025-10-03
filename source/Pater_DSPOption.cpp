@@ -3,3 +3,6 @@
 //
 
 #include "Pater_DSPOption.h"
+
+DSPOption::DSPOption() = default;
+DSPOption::~DSPOption() = default;

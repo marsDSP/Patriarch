@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-
+#include "Pater_DSPOption.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -40,5 +40,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    DSPOption dsp;
+    DSPOption::DSP_Order currentDspOrder{};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

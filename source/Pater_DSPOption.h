@@ -1,7 +1,7 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
-#include <Pater_Fifo.h>
+#include "Pater_Fifo.h"
 
 class DSPOption
 {
@@ -20,8 +20,9 @@ public:
     };
 
     using DSP_Order = std::array<DSP_Option, static_cast<size_t>(DSP_Option::END_OF_LIST)>;
-    Pater_Fifo<DSP_Order> dspOrderFifo;
-private:
+    Pater_Fifo::Fifo<DSP_Order> dspOrderFifo;
+
+public:
 
     DSP_Order dspOrder;
 

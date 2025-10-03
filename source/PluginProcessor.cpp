@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Pater_DSPOption.h"
+#include "Pater_Fifo.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
@@ -87,15 +88,32 @@ void PluginProcessor::changeProgramName (int index, const juce::String& newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    // Prepare all DSP processors with the current playback configuration.
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = static_cast<double>(sampleRate);
+    spec.maximumBlockSize = static_cast<juce::uint32>(samplesPerBlock);
+    spec.numChannels = static_cast<juce::uint32>(getTotalNumOutputChannels());
+
+    dsp.phaser.prepare(spec);
+    dsp.chorus.prepare(spec);
+    dsp.reverb.prepare(spec);
+    dsp.delay.prepare(spec);
+
+    // Set a sensible default order in case none has been pushed yet.
+    dsp.dspOrder = { DSPOption::DSP_Option::Phaser,
+                     DSPOption::DSP_Option::Chorus,
+                     DSPOption::DSP_Option::Reverb,
+                     DSPOption::DSP_Option::Delay };
+    currentDspOrder = dsp.dspOrder;
 }
 
 void PluginProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    // Reset processors to release any internal buffers.
+    dsp.phaser.reset();
+    dsp.chorus.reset();
+    dsp.reverb.reset();
+    dsp.delay.reset();
 }
 
 bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -132,6 +150,55 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    auto newDSPOrder = DSPOption::DSP_Order();
+
+    //try to pull
+    while(dsp.dspOrderFifo.pull(newDSPOrder))
+    {
+    }
+    //if you pulled, replace dspOrder;
+    if (newDSPOrder != DSPOption::DSP_Order())
+        currentDspOrder = newDSPOrder;
+
+    //now convert dspOrder into an array of pointers.
+    std::array<juce::dsp::ProcessorBase*, static_cast<size_t>(DSPOption::DSP_Option::END_OF_LIST)> dspPointers{};
+
+    for (size_t i = 0; i < dspPointers.size(); ++i)
+    {
+        switch (currentDspOrder[i])
+        {
+            case DSPOption::DSP_Option::Phaser:
+                dspPointers[i] = &dsp.phaser;
+                break;
+
+            case DSPOption::DSP_Option::Chorus:
+                dspPointers[i] = &dsp.chorus;
+                break;
+
+            case DSPOption::DSP_Option::Reverb:
+                dspPointers[i] = &dsp.reverb;
+                break;
+
+            case DSPOption::DSP_Option::Delay:
+                dspPointers[i] = &dsp.delay;
+                break;
+
+            case DSPOption::DSP_Option::END_OF_LIST:
+                jassertfalse;
+                break;
+        }
+    }
+    //now process:
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    auto context = juce::dsp::ProcessContextReplacing<float>(block);
+
+    for (size_t i = 0; i < dspPointers.size(); ++i)
+    {
+        if (dspPointers[i] != nullptr)
+        {
+            dspPointers[i]->process(context);
+        }
+    }
 }
 //==============================================================================
 bool PluginProcessor::hasEditor() const
