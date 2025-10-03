@@ -3,6 +3,7 @@
 #include "Pater_DSPOption.h"
 #include "Pater_Fifo.h"
 
+
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
@@ -12,7 +13,7 @@ PluginProcessor::PluginProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), params(apvts)
 {
 }
 
@@ -136,6 +137,13 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 
     return true;
   #endif
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    return layout;
 }
 
 void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,

@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "Pater_DSPOption.h"
+#include "Pater_Params.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -19,6 +20,8 @@ public:
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -40,7 +43,12 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+
     DSPOption dsp;
     DSPOption::DSP_Order currentDspOrder{};
+
+    juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters", Parameters::createParameterLayout() };
+    Parameters params;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

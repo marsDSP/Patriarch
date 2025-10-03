@@ -8,9 +8,9 @@ class Parameters
 {
 public:
 
-    explicit Parameters(juce::AudioProcessorValueTreeState& apvts);
-
+    explicit Parameters(juce::AudioProcessorValueTreeState& apvts); // {*this, nullptr, "Settings", createParameterLayout()};
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
 
     void prepareToPlay(double sampleRate) noexcept;
 

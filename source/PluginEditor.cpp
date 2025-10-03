@@ -2,7 +2,8 @@
 #include "Pater_DSPOption.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
-    : AudioProcessorEditor (&p), patriarchProcessor (p)
+    : AudioProcessorEditor (&p)
+    , patriarchProcessor (p)
 {
     juce::ignoreUnused (patriarchProcessor);
 
