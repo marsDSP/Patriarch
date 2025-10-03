@@ -2,8 +2,16 @@
 #include "PluginEditor.h"
 #include "Pater_DSPOption.h"
 #include "Pater_Fifo.h"
+#include "Pater_Params.h"
 
+// compile-time constants, Integrate with createParameterLayout()
 
+constexpr auto getPhaserRateName() { return "Phaser RateHz"; }
+constexpr auto getPhaserCenterFreqName() { return "Phaser Center FreqHz"; }
+constexpr auto getPhaserDepthName() { return "Phaser Depth%"; }
+constexpr auto getPhaserFeedbackName() { return "Phaser Feedback%"; }
+constexpr auto getPhaserWarmthName() { return "Phaser Warmth%"; }
+constexpr auto getPhaserMixName() { return "Phaser Mix%"; }
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
@@ -15,6 +23,7 @@ PluginProcessor::PluginProcessor()
                      #endif
                        ), params(apvts)
 {
+    // Parameter pointers are retrieved via the APVTS when needed.
 }
 
 PluginProcessor::~PluginProcessor()
@@ -142,6 +151,28 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    const int versionHint = 1;
+
+    auto name = getPhaserRateName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{name, versionHint}, name,
+          juce::NormalisableRange<float>(0.01f, 2.f, 0.01f, 1.f),
+          0.2f, "Hz"));
+
+    name = getPhaserDepthName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{name, versionHint}, name,
+        juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
+        0.05f, "%"));
+
+    name = getPhaserFeedbackName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{name, versionHint}, name,
+        juce::NormalisableRange<float>(-1.f, 1.f, 0.01f, 1.f),
+        0.0f, "Hz"));
+
+    name = getPhaserRateName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{name, versionHint}, name,
+        juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
+        0.05f, "%"));
 
     return layout;
 }
