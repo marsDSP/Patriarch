@@ -52,7 +52,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (600, 600);
+    setSize (690, 230);
 }
 
 PluginEditor::~PluginEditor()
@@ -87,8 +87,18 @@ void PluginEditor::parameterValueChanged(int, float value)
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    auto noise = juce::ImageCache::getFromMemory(BinaryData::Noise_png, BinaryData::Noise_pngSize);
+    auto fillType = juce::FillType(noise, juce::AffineTransform::scale(0.5f));
+
+    g.fillAll(juce::Colours::grey);
+
+    // g.setFillType(fillType);
+    // g.fillRect(getLocalBounds());
+
+    // Draw the header bar on top
+    auto rect = getLocalBounds().withHeight(40);
+    g.setColour(Colors::header);
+    g.fillRect(rect);
 
 }
 
@@ -99,10 +109,33 @@ void PluginEditor::resized()
     int y = 50;
     int height = bounds.getHeight() - 60;
 
-    phaserGroup.setBounds(10, y, 110, height);
+    phaserGroup.setBounds(10, y, bounds.getWidth() - 20, height);
 
-    phaserRateHzKnob.setTopLeftPosition(20, 20);
+    // Size and position knobs inside the group
+    auto groupBounds = phaserGroup.getLocalBounds().reduced(10);
+    groupBounds.removeFromTop(20); // Space for group title
+    
+    int knobSize = 100;
+    int knobSpacing = 10;
+    
+    phaserRateHzKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
+    groupBounds.removeFromLeft(knobSpacing);
+    
+    phaserNoteKnob.setBounds(phaserRateHzKnob.getBounds()); // Same position as rate knob
+    
+    phaserCenterFreqHzKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
+    groupBounds.removeFromLeft(knobSpacing);
+    
+    phaserDepthPercentKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
+    groupBounds.removeFromLeft(knobSpacing);
+    
+    phaserFeedbackPercentKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
+    groupBounds.removeFromLeft(knobSpacing);
+    
+    phaserWarmthPercentKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
+    groupBounds.removeFromLeft(knobSpacing);
+    
+    phaserMixPercentKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
 
-    tempoSyncButton.setTopLeftPosition(20, 10);
-
+    tempoSyncButton.setBounds(20, 10, 100, 30);
 }

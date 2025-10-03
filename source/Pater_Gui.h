@@ -8,12 +8,12 @@
 
 namespace Colors
 {
-    const juce::Colour background { 245, 240, 235 };
+    const juce::Colour background { 40, 40, 40 };
     const juce::Colour header { 40, 40, 40 };
 
     namespace Group
     {
-        const juce::Colour label { 160, 155, 150 };
+        const juce::Colour label { 0, 0, 0 };  // Changed to black
         const juce::Colour outline { 235, 230, 225 };
     }
 
@@ -26,7 +26,7 @@ namespace Colors
         const juce::Colour gradientBottom { 240, 235, 230 };
         const juce::Colour dial { 100, 100, 100 };
         const juce::Colour dropShadow { 195, 190, 185 };
-        const juce::Colour label { 80, 80, 80 };
+        const juce::Colour label { 0, 0, 0 };  // Changed to black
         const juce::Colour textBoxBackground { 80, 80, 80 };
         const juce::Colour value { 240, 240, 240 };
         const juce::Colour caret { 255, 255, 255 };
@@ -34,7 +34,7 @@ namespace Colors
 
     namespace Button
     {
-        const juce::Colour text { 80, 80, 80 };
+        const juce::Colour text { 0, 0, 0 };  // Changed to black
         const juce::Colour textToggled { 40, 40, 40 };
         const juce::Colour background { 245, 240, 235 };
         const juce::Colour backgroundToggled { 255, 250, 245 };
