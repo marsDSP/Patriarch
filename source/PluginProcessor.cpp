@@ -1,6 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "DSPOption.h"
+#include "Pater_DSPOption.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor()

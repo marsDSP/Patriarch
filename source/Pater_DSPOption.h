@@ -49,7 +49,7 @@ private:
 
     DSP_Choice<juce::dsp::Phaser<float>> phaser;
     DSP_Choice<juce::dsp::Chorus<float>> chorus;
-    DSP_Choice<juce::dsp::Reverb<float>> reverb;
+    DSP_Choice<juce::dsp::Reverb> reverb;
     DSP_Choice<juce::dsp::DelayLine<float>> delay;
 
     using DSP_Pointers = std::array<juce::dsp::ProcessorBase*,

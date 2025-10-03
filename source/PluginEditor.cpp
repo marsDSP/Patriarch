@@ -1,5 +1,5 @@
 #include "PluginEditor.h"
-#include "DSPOption.h"
+#include "Pater_DSPOption.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), patriarchProcessor (p)
