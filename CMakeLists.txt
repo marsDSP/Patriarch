@@ -91,7 +91,16 @@ juce_add_plugin("${PROJECT_NAME}"
 
 # This lets us use our code in both the JUCE targets and our Test target
 # Without running into ODR violations
-add_library(SharedCode INTERFACE)
+add_library(SharedCode INTERFACE
+        "source/Spectrum Analyzer/Analyzer/Pater_FFT.h"
+        "source/Spectrum Analyzer/Analyzer/Pater_MSFFT.h"
+        source/Constants/Pater_Constants.h
+        source/Constants/Pater_Theme.h
+        # Spectrum Analyzer minimal headers
+        # Spectrum Analyzer: excluding unfinished controller sources from SharedCode
+        # "source/Spectrum Analyzer/Controllers/Pater_AnalyzerController.cpp"
+        # "source/Spectrum Analyzer/Controllers/Pater_AnalyzerController.h"
+)
 
 clap_juce_extensions_plugin(TARGET "${PROJECT_NAME}"
     CLAP_ID "${BUNDLE_ID}"
@@ -107,6 +116,16 @@ include(SharedCodeDefaults)
 # If you want to appease the CMake gods and avoid globs, manually add files like so:
 # set(SourceFiles Source/PluginEditor.h Source/PluginProcessor.h Source/PluginEditor.cpp Source/PluginProcessor.cpp)
 file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h")
+
+# Spectrum Analyzer: keep legacy phaser sources excluded (not compatible with current system)
+list(REMOVE_ITEM SourceFiles
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/DSP/Phasers/Pater_MonoPhaser.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/DSP/Phasers/Pater_MonoPhaser.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/DSP/Phasers/Pater_StereoPhaser.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/DSP/Phasers/Pater_StereoPhaser.h"
+)
+
+# Spectrum Analyzer: All Controllers, Display, and Processor files are now included
 target_sources(SharedCode INTERFACE ${SourceFiles})
 
 # Adds a BinaryData target for embedding assets into the binary

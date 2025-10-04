@@ -1,8 +1,10 @@
 #pragma once
 
-#include <juce_audio_processors/juce_audio_processors.h>
 #include "Pater_DSPOption.h"
 #include "Pater_Params.h"
+#include <juce_audio_processors/juce_audio_processors.h>
+// Spectrum Analyzer: include FFT analyser helper
+#include "Spectrum Analyzer/Analyzer/Pater_FFT.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -44,12 +46,23 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+public:
+    // Spectrum Analyzer: expose simple helper API for the editor
+    bool checkForNewAnalyserData() const;
+    void createAnalyserPlot(juce::Path& p, juce::Rectangle<float> bounds, float minFreq) const;
+    
+    // Provide access to parameter tree for EQ controllers
+    juce::AudioProcessorValueTreeState& getPluginState() { return apvts; }
+
 private:
 
     DSPOption dsp;
     DSPOption::DSP_Order currentDspOrder{};
 
     Parameters params;
+
+    // Spectrum Analyzer: analyser instance fed from processBlock
+    std::unique_ptr<MarsDSP::FFTAnalyser<float>> spectrumAnalyser; 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

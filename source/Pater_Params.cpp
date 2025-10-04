@@ -2,20 +2,6 @@
 #include "Pater_Params.h"
 #include "Pater_DSPOption.h"
 
-
-// Parameters::Parameters(juce::AudioProcessorValueTreeState& apvts)
-// {
-//     // Bind parameter pointers from the APVTS using the declared ParameterIDs
-//     phaserRateHz        = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserRateHzParamID.getParamID()));
-//     phaserCenterFreqHz  = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserCenterFreqHzParamID.getParamID()));
-//     phaserDepthPercent  = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserDepthPercentParamID.getParamID()));
-//     phaserFeedbackPercent = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserFeedbackPercentParamID.getParamID()));
-//     phaserWarmthPercent = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserWarmthPercentParamID.getParamID()));
-//     phaserMixPercent    = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserMixPercentParamID.getParamID()));
-//
-//     jassert(phaserRateHz && phaserCenterFreqHz && phaserDepthPercent && phaserFeedbackPercent && phaserWarmthPercent && phaserMixPercent);
-// }
-
 template<typename T>
 static void castParameter(juce::AudioProcessorValueTreeState& apvts, const juce::ParameterID& id, T& destination)
 {

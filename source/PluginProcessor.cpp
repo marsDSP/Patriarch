@@ -1,8 +1,8 @@
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
 #include "Pater_DSPOption.h"
 #include "Pater_Fifo.h"
 #include "Pater_Params.h"
+#include "PluginEditor.h"
 
 auto getPhaserRateName() { return "Phaser RateHz"; }
 auto getPhaserCenterFreqName() { return "Phaser Center FreqHz"; }
@@ -114,6 +114,11 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
     dsp.delay.prepare(spec);
     dsp.delay.reset();
+
+    // Spectrum Analyzer: initialize analyser with a reasonable FIFO size and current sample rate
+    // (Change added for Spectrum Analyzer integration)
+    spectrumAnalyser = std::make_unique<MarsDSP::FFTAnalyser<float>>();
+    spectrumAnalyser->setupAnalyser(48000, static_cast<float>(sampleRate));
 }
 
 void PluginProcessor::releaseResources()
@@ -214,6 +219,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             dspPointers[i]->process(context);
         }
     }
+
+    // Spectrum Analyzer: feed analyser with the current output buffer
+    // (Change added for Spectrum Analyzer integration)
+    if (spectrumAnalyser)
+        spectrumAnalyser->addAudioData(buffer, 0, static_cast<int>(totalNumOutputChannels));
 }
 //==============================================================================
 bool PluginProcessor::hasEditor() const
@@ -240,6 +250,19 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     juce::ignoreUnused (data, sizeInBytes);
+}
+
+// Spectrum Analyzer: helper methods for editor
+// (Changes added for Spectrum Analyzer integration)
+bool PluginProcessor::checkForNewAnalyserData() const
+{
+    return spectrumAnalyser ? spectrumAnalyser->checkForNewData() : false;
+}
+
+void PluginProcessor::createAnalyserPlot(juce::Path& p, juce::Rectangle<float> bounds, float minFreq) const
+{
+    if (spectrumAnalyser)
+        spectrumAnalyser->createPath(p, bounds, minFreq);
 }
 
 //==============================================================================

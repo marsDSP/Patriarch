@@ -1,5 +1,37 @@
 #include "PluginEditor.h"
 #include "Pater_DSPOption.h"
+#include "Spectrum Analyzer/Display/Pater_FFTDisplay.h"
+#include "Spectrum Analyzer/Display/Pater_MenuDisplay.h"
+#include "Spectrum Analyzer/Display/Pater_SettingsDisplay.h"
+#include "Spectrum Analyzer/Display/Pater_InfoDisplay.h"
+
+// Spectrum Analyzer: enhanced component using the dedicated AnalyzerDisplay to draw grid/labels
+class SpectrumAnalyserComponent : public MarsDSP::AnalyzerDisplay, private juce::Timer
+{
+public:
+    explicit SpectrumAnalyserComponent(PluginProcessor& proc) : processor(proc)
+    {
+        startTimerHz(30); // update ~30 fps
+    }
+
+private:
+    void timerCallback() override
+    {
+        if (plotFrame.isEmpty())
+            return;
+
+        if (processor.checkForNewAnalyserData())
+        {
+            // Fill both input and output paths using the available analyser data
+            // (Processor currently provides a single stream; duplicate for visualisation)
+            processor.createAnalyserPlot(in_analyser, plotFrame.toFloat(), 20.0f);
+            processor.createAnalyserPlot(out_analyser, plotFrame.toFloat(), 20.0f);
+            repaint(plotFrame);
+        }
+    }
+
+    PluginProcessor& processor;
+};
 
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p)
@@ -15,8 +47,34 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     setLookAndFeel (&mainLF);
 
     setResizable (true, true);
-    setResizeLimits (300, 200, 2000, 2000);
+    setResizeLimits (300, 200, 4000, 3000);
 
+    // Top menu bar and overlays
+    addAndMakeVisible(menuBar);
+    addChildComponent(settingsDisplay);
+    addChildComponent(infoDisplay);
+
+    menuBar.settingButton.onClick = [this]
+    {
+        showSettings = !showSettings;
+        if (showSettings) showInfo = false;
+        updateOverlaysVisibility();
+    };
+    menuBar.infoButton.onClick = [this]
+    {
+        showInfo = !showInfo;
+        if (showInfo) showSettings = false;
+        updateOverlaysVisibility();
+    };
+    menuBar.bypassButton.onClick = [this]
+    {
+        // Placeholder: local toggle UI only
+        menuBar.bypassButton.setToggleState(!menuBar.bypassButton.getToggleState(), juce::NotificationType::dontSendNotification);
+    };
+
+    // Spectrum Analyzer: create and add the analyser view above parameters
+    spectrumView = std::make_unique<SpectrumAnalyserComponent>(patriarchProcessor);
+    addAndMakeVisible(*spectrumView);
 
     phaserGroup.setText("Phaser");
     phaserGroup.setTextLabelPosition(juce::Justification::horizontallyCentred);
@@ -50,9 +108,12 @@ PluginEditor::PluginEditor (PluginProcessor& p)
         inspector->setVisible (true);
     };
 
+    // Ensure initial overlay visibility
+    updateOverlaysVisibility();
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (690, 230);
+    setSize (670, 630);
 }
 
 PluginEditor::~PluginEditor()
@@ -66,6 +127,15 @@ void PluginEditor::updateDelayKnobs(bool tempoSyncActive)
 {
     phaserRateHzKnob.setVisible(!tempoSyncActive);
     phaserNoteKnob.setVisible(tempoSyncActive);
+}
+
+void PluginEditor::updateOverlaysVisibility()
+{
+    settingsDisplay.setVisible(showSettings);
+    infoDisplay.setVisible(showInfo);
+
+    if (showSettings) settingsDisplay.toFront(true);
+    if (showInfo) infoDisplay.toFront(true);
 }
 
 void PluginEditor::parameterValueChanged(int, float value)
@@ -106,10 +176,44 @@ void PluginEditor::resized()
 {
     auto bounds = getLocalBounds();
 
-    int y = 50;
-    int height = bounds.getHeight() - 60;
+    const int headerHeight = 40;
+    const int margin = 8;
 
-    phaserGroup.setBounds(10, y, bounds.getWidth() - 20, height);
+    // Menu bar at the top
+    menuBar.setBounds(margin, 0, bounds.getWidth() - 2 * margin, headerHeight);
+
+    // Overlay panels occupy the area below the header
+    auto overlayArea = juce::Rectangle<int>(margin, headerHeight + margin, bounds.getWidth() - 2 * margin, bounds.getHeight() - headerHeight - 2 * margin);
+    settingsDisplay.setBounds(overlayArea);
+    infoDisplay.setBounds(overlayArea);
+
+    // Calculate available space below the header and split between analyser and phaser params
+    const int top = headerHeight + margin;
+    const int totalBelow = bounds.getHeight() - top - margin; // area for analyser + phaser
+
+    const int internalGap = margin;
+    int analyserHeight = juce::roundToInt((totalBelow - internalGap) * 0.65f);
+    int phaserHeight = (totalBelow - internalGap) - analyserHeight;
+
+    // Ensure the phaser section has a minimum height so it's always visible
+    const int phaserMin = 180;
+    if (phaserHeight < phaserMin)
+    {
+        phaserHeight = juce::jmin(phaserMin, totalBelow - internalGap);
+        analyserHeight = (totalBelow - internalGap) - phaserHeight;
+    }
+
+    // Ensure analyser has a sane minimum
+    analyserHeight = juce::jmax(100, analyserHeight);
+
+    // position spectrum analyser below header
+    if (spectrumView)
+        spectrumView->setBounds(10, top, bounds.getWidth() - 20, analyserHeight);
+
+    // Place phaser controls below the analyser
+    const int phaserY = top + analyserHeight + internalGap;
+    phaserGroup.setVisible(true);
+    phaserGroup.setBounds(10, phaserY, bounds.getWidth() - 20, juce::jmax(0, phaserHeight));
 
     // Size and position knobs inside the group
     auto groupBounds = phaserGroup.getLocalBounds().reduced(10);
@@ -138,4 +242,7 @@ void PluginEditor::resized()
     phaserMixPercentKnob.setBounds(groupBounds.removeFromLeft(knobSize).withHeight(120));
 
     tempoSyncButton.setBounds(20, 10, 100, 30);
+
+    // Ensure overlays reflect current flags on resize
+    updateOverlaysVisibility();
 }

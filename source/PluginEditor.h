@@ -2,12 +2,20 @@
 
 #include "BinaryData.h"
 #include "Pater_Gui.h"
-#include "PluginProcessor.h"
 #include "Pater_Params.h"
 #include "Pater_RotaryKnob.h"
+#include "PluginProcessor.h"
 #include "melatonin_inspector/melatonin_inspector.h"
 
+// Spectrum Analyzer displays
+#include "Spectrum Analyzer/Display/Pater_MenuDisplay.h"
+#include "Spectrum Analyzer/Display/Pater_SettingsDisplay.h"
+#include "Spectrum Analyzer/Display/Pater_InfoDisplay.h"
+
 //==============================================================================
+
+// Spectrum Analyzer: forward declaration of simple view component
+class SpectrumAnalyserComponent;
 
 class PluginEditor : public juce::AudioProcessorEditor,
                     private juce::AudioProcessorParameter::Listener
@@ -26,9 +34,20 @@ private:
     {
     }
 
+    // Helpers
+    void updateDelayKnobs(bool tempoSyncActive);
+    void updateOverlaysVisibility();
+
     MainLookAndFeel mainLF;
 
     PluginProcessor& patriarchProcessor;
+
+    // Top menu bar and overlays
+    MarsDSP::MenuDisplay menuBar;
+    MarsDSP::SettingsDisplay settingsDisplay;
+    MarsDSP::InfoDisplay infoDisplay;
+    bool showSettings = false;
+    bool showInfo = false;
 
     juce::GroupComponent phaserGroup;
 
@@ -47,10 +66,11 @@ private:
         patriarchProcessor.apvts, tempoSyncParamID.getParamID(), tempoSyncButton
     };
 
-    void updateDelayKnobs(bool tempoSyncActive);
-
     std::unique_ptr<melatonin::Inspector> inspector;
     juce::TextButton inspectButton { "Inspect the UI" };
+
+    // Spectrum Analyzer: UI component instance (drawn above parameters)
+    std::unique_ptr<SpectrumAnalyserComponent> spectrumView; // added for Spectrum Analyzer
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };
